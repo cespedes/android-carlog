@@ -1,4 +1,4 @@
-package com.sqisland.android.hello;
+package org.cespedes.android.carlog;
 
 import android.app.Activity;
 import android.os.Bundle;
