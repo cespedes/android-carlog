@@ -17,20 +17,27 @@
         android:textSize="25dp"
         />
 
-    <Button
-        android:id="@+id/btnButton1"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="startService"
-        android:text="Start Service"
-        android:layout_below="@+id/textView1" />
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/textView1">
 
-    <Button
-        android:id="@+id/btnButton2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="stopService"
-        android:text="Stop Service"
-        android:layout_toRightOf="@id/btnButton1" />
+        <Button
+            android:id="@+id/btnButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="startService"
+            android:text="Start Service" />
+
+        <Button
+            android:id="@+id/btnButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="stopService"
+            android:text="Stop Service"
+            android:layout_below="@+id/textView1" />
+    </LinearLayout>
 
 </RelativeLayout>
