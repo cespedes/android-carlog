@@ -1,4 +1,6 @@
 <resources>
-  <string name="app_name">Car Log</string>
-  <string name="hello_world">Hello world!</string>
+    <string name="app_name">Car Log</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="reminder">Recuerda</string>
+    <string name="done">Done.</string>
 </resources>
