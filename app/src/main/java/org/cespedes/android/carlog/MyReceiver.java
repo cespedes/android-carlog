@@ -13,7 +13,8 @@ public class MyReceiver extends BroadcastReceiver {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
         Log.d("carlog", "MyReceiver:onReceive()");
-        Toast.makeText(context, "Battery Changed", Toast.LENGTH_LONG).show();
+//        Intent startServiceIntent = new Intent(context, MyService.class);
+        context.startService(new Intent(context.getApplicationContext(), MyService.class));
         // throw new UnsupportedOperationException("Not yet implemented");
     }
 }

@@ -24,7 +24,25 @@ public class MyService extends Service {
     }
 
     @Override
+    public void onCreate() {
+        Log.d("Carlog", "MyService:onCreate();");
+        startTimer();
+        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+
+        addNotification();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("Carlog", "MyService:onStartCommand();");
+//        startTimer();
+//        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        return START_STICKY;
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
+        Log.d("Carlog", "MyService:onBind();");
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -32,7 +50,7 @@ public class MyService extends Service {
     private void addNotification() {
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.icon)
+                        .setSmallIcon(R.drawable.car)
                         .setOngoing(true)
                         .setContentTitle("CarLog")
                         .setContentText("Service is running");
@@ -50,22 +68,6 @@ public class MyService extends Service {
     private void delNotification() {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(0); // Notification ID to cancel
-    }
-
-    @Override
-    public void onCreate() {
-        Log.d("Carlog", "MyService:onCreate();");
-        startTimer();
-        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
-
-        addNotification();
-    }
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("Carlog", "MyService:onStartCommand();");
-//        startTimer();
-//        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
-        return START_STICKY;
     }
     @Override
     public void onDestroy() {
