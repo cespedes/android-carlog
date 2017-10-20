@@ -16,10 +16,14 @@ public class MainActivity extends Activity {
     }
 
     public void startService() {
-        startService(new Intent(getApplicationContext(), MyService.class));
+        Intent i = new Intent(getBaseContext(), MyService.class);
+        i.putExtra("start", true);
+        startService(i);
     }
     public void stopService() {
-        stopService(new Intent(getApplicationContext(), MyService.class));
+        Intent i = new Intent(getBaseContext(), MyService.class);
+        i.putExtra("start", false);
+        startService(i);
     }
 
     public void startService(View view) {

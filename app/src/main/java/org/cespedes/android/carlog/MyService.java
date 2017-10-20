@@ -35,6 +35,16 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Carlog", "MyService:onStartCommand();");
+        if (intent != null && intent.getExtras() != null) {
+            Boolean start = intent.getBooleanExtra("start", false);
+            if (start) {
+                addNotification();
+                Log.d("Carlog", "received start");
+            } else {
+                delNotification();
+                Log.d("Carlog", "received stop");
+            }
+        }
 //        startTimer();
 //        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
         return START_STICKY;
@@ -85,7 +95,7 @@ public class MyService extends Service {
             Log.d("Carlog", "MyService:startTimer(): starting timer");
             timer = new Timer();
             initializeTimerTask();
-            timer.schedule(timerTask, 1000, 10000);
+            timer.schedule(timerTask, 1000, 15*60*1000);
         }
     }
     public void initializeTimerTask() {
