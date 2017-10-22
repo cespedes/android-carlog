@@ -12,7 +12,7 @@ public class MyReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
-        Log.d("carlog", "MyReceiver:onReceive()");
+        Log.d("Carlog", "MyReceiver:onReceive()");
 //        Intent startServiceIntent = new Intent(context, MyService.class);
         context.startService(new Intent(context.getApplicationContext(), MyService.class));
         // throw new UnsupportedOperationException("Not yet implemented");

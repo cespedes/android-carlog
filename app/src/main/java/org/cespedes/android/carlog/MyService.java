@@ -36,13 +36,13 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Carlog", "MyService:onStartCommand();");
         if (intent != null && intent.getExtras() != null) {
-            Boolean start = intent.getBooleanExtra("start", false);
-            if (start) {
+            if (intent.getBooleanExtra("startlog", false)) {
                 addNotification();
-                Log.d("Carlog", "received start");
-            } else {
+                Log.d("Carlog", "received startlog");
+            }
+            if (intent.getBooleanExtra("stoplog", false)) {
                 delNotification();
-                Log.d("Carlog", "received stop");
+                Log.d("Carlog", "received stoplog");
             }
         }
 //        startTimer();

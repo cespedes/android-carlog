@@ -17,12 +17,12 @@ public class MainActivity extends Activity {
 
     public void startService() {
         Intent i = new Intent(getBaseContext(), MyService.class);
-        i.putExtra("start", true);
+        i.putExtra("startlog", true);
         startService(i);
     }
     public void stopService() {
         Intent i = new Intent(getBaseContext(), MyService.class);
-        i.putExtra("start", false);
+        i.putExtra("stoplog", true);
         startService(i);
     }
 
