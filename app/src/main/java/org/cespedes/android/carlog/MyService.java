@@ -1,10 +1,17 @@
 package org.cespedes.android.carlog;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Service;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Patterns;
 import android.widget.Toast;
 import android.util.Log;
 
@@ -17,19 +24,66 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
-public class MyService extends Service {
+public class MyService extends Service implements LocationListener {
     public int counter=0;
+    public String email = "unknown";
+    Location myloc = new Location("none");
+    LocationManager locationManager;
+
     public MyService() {
+    }
+
+    @Override
+    public void onLocationChanged(Location loc) {
+        Log.d("Carlog", "MyService:onLocationChanged();");
+        Toast.makeText(this,
+                "Location changed: Lat: " + loc.getLatitude() + " Lng: "
+                        + loc.getLongitude(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        Log.d("Carlog", "MyService:onProviderDisabled();");
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        Log.d("Carlog", "MyService:onProviderEnabled();");
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        Log.d("Carlog", "MyService:onStatusChanged();");
     }
 
     @Override
     public void onCreate() {
         Log.d("Carlog", "MyService:onCreate();");
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS;
+        Account[] accounts = AccountManager.get(getApplicationContext()).getAccounts();
+        for (Account account : accounts) {
+            Log.d("Carlog", "account=" + account.name);
+            if (emailPattern.matcher(account.name).matches()) {
+                email = account.name;
+                break;
+            }
+        }
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 60*1000, 0, this);
         startTimer();
-        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Carlog service created", Toast.LENGTH_LONG).show();
+    }
 
+    private void StartLog() {
         addNotification();
+        Toast.makeText(this, "Carlog: StartLog", Toast.LENGTH_LONG).show();
+    }
+
+    private void StopLog() {
+        delNotification();
+        Toast.makeText(this, "Carlog: StopLog", Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -37,12 +91,12 @@ public class MyService extends Service {
         Log.d("Carlog", "MyService:onStartCommand();");
         if (intent != null && intent.getExtras() != null) {
             if (intent.getBooleanExtra("startlog", false)) {
-                addNotification();
                 Log.d("Carlog", "received startlog");
+                StartLog();
             }
             if (intent.getBooleanExtra("stoplog", false)) {
-                delNotification();
                 Log.d("Carlog", "received stoplog");
+                StopLog();
             }
         }
 //        startTimer();
@@ -117,19 +171,23 @@ public class MyService extends Service {
         }
     }
     private void sendData() throws Exception {
+        Log.d("Carlog", "MyService:sendData(): email=" + email + " lat=" + myloc.getLatitude() + " lon=" + myloc.getLongitude() + " acc=" + myloc.getAccuracy());
         HttpURLConnection client = null;
-        URL url = new URL("http://kermit.cespedes.org/carlog");
+        URL url = new URL("http://kermit.cespedes.org/carlog/");
         client = (HttpURLConnection) url.openConnection();
 
         client.setRequestMethod("POST");
         client.setDoOutput(true);
         client.setInstanceFollowRedirects(false);
-        client.setRequestProperty("Content-Type", "text/plain");
+        client.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         client.setRequestProperty("charset", "utf-8");
 //            client.setRequestProperty("Key","Value");
 
         StringBuilder postData = new StringBuilder();
-        postData.append("user=cespedes");
+        postData.append("user=" + email);
+        postData.append("&lat=" + myloc.getLatitude());
+        postData.append("&lon=" + myloc.getLongitude());
+        postData.append("&acc=" + myloc.getAccuracy());
         byte[] postDataBytes = postData.toString().getBytes("UTF-8");
         client.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
         client.getOutputStream().write(postDataBytes);
