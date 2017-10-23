@@ -174,7 +174,7 @@ public class MyService extends Service implements LocationListener {
     private void sendData() throws Exception {
         Log.d("Carlog", "MyService:sendData(): email=" + email + " lat=" + myloc.getLatitude() + " lon=" + myloc.getLongitude() + " acc=" + myloc.getAccuracy());
         HttpURLConnection client = null;
-        URL url = new URL("http://kermit.cespedes.org/carlog/");
+        URL url = new URL("https://kermit.cespedes.org/carlog/");
         client = (HttpURLConnection) url.openConnection();
 
         client.setRequestMethod("POST");
