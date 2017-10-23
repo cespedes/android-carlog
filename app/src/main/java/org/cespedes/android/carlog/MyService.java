@@ -37,6 +37,7 @@ public class MyService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location loc) {
+        myloc = loc;
         Log.d("Carlog", "MyService:onLocationChanged();");
         Toast.makeText(this,
                 "Location changed: Lat: " + loc.getLatitude() + " Lng: "
@@ -149,7 +150,7 @@ public class MyService extends Service implements LocationListener {
             Log.d("Carlog", "MyService:startTimer(): starting timer");
             timer = new Timer();
             initializeTimerTask();
-            timer.schedule(timerTask, 1000, 15*60*1000);
+            timer.schedule(timerTask, 1000, 5*60*1000);
         }
     }
     public void initializeTimerTask() {
