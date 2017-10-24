@@ -1,16 +1,19 @@
 package org.cespedes.android.carlog;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Service;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.ContextCompat;
 import android.util.Patterns;
 import android.widget.Toast;
 import android.util.Log;
@@ -42,6 +45,7 @@ public class MyService extends Service implements LocationListener {
         Toast.makeText(this,
                 "Location changed: Lat: " + loc.getLatitude() + " Lng: "
                         + loc.getLongitude(), Toast.LENGTH_SHORT).show();
+        sendData();
     }
 
     @Override
@@ -71,9 +75,17 @@ public class MyService extends Service implements LocationListener {
                 break;
             }
         }
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 60*1000, 0, this);
-        startTimer();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 5*60*1000, 0, this);
+        }
+
+
+
+
+//        startTimer();
         Toast.makeText(this, "Carlog service created", Toast.LENGTH_LONG).show();
     }
 
@@ -171,33 +183,45 @@ public class MyService extends Service implements LocationListener {
             timer = null;
         }
     }
-    private void sendData() throws Exception {
-        Log.d("Carlog", "MyService:sendData(): email=" + email + " lat=" + myloc.getLatitude() + " lon=" + myloc.getLongitude() + " acc=" + myloc.getAccuracy());
-        HttpURLConnection client = null;
-        URL url = new URL("https://kermit.cespedes.org/carlog/");
-        client = (HttpURLConnection) url.openConnection();
+    private void sendData() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.d("Carlog", "MyService:sendData(): email=" + email + " lat=" + myloc.getLatitude() + " lon=" + myloc.getLongitude() + " acc=" + myloc.getAccuracy());
+                    HttpURLConnection client = null;
+                    URL url = new URL("https://kermit.cespedes.org/carlog/");
+                    client = (HttpURLConnection) url.openConnection();
 
-        client.setRequestMethod("POST");
-        client.setDoOutput(true);
-        client.setInstanceFollowRedirects(false);
-        client.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        client.setRequestProperty("charset", "utf-8");
-//            client.setRequestProperty("Key","Value");
+                    client.setRequestMethod("POST");
+                    client.setDoOutput(true);
+                    client.setInstanceFollowRedirects(false);
+                    client.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    client.setRequestProperty("charset", "utf-8");
+                    StringBuilder postData = new StringBuilder();
+                    postData.append("user=" + email);
+                    postData.append("&lat=" + myloc.getLatitude());
+                    postData.append("&lon=" + myloc.getLongitude());
+                    postData.append("&acc=" + myloc.getAccuracy());
+                    postData.append("&time=" + myloc.getTime());
+                    postData.append("&provider=" + myloc.getProvider());
+                    byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+                    client.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+                    client.getOutputStream().write(postDataBytes);
 
-        StringBuilder postData = new StringBuilder();
-        postData.append("user=" + email);
-        postData.append("&lat=" + myloc.getLatitude());
-        postData.append("&lon=" + myloc.getLongitude());
-        postData.append("&acc=" + myloc.getAccuracy());
-        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-        client.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-        client.getOutputStream().write(postDataBytes);
+                    client.connect();
+                    int resCode = client.getResponseCode();
 
-        client.connect();
-        int resCode = client.getResponseCode();
+                    if (client != null) {
+                        client.disconnect();
+                    }
 
-        if (client != null) {
-            client.disconnect();
-        }
+                } catch (Exception e) {
+                    Log.i("Carlog", "MyService:sendData(); Exception " + e);
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
     }
 }

@@ -20,10 +20,14 @@ public class MainActivity extends Activity {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.GET_ACCOUNTS)
                 != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Wrong permissions!", Toast.LENGTH_LONG).show();
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.GET_ACCOUNTS},
-                    0);
+                    new String[]{Manifest.permission.GET_ACCOUNTS},0);
+        }
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},0);
         }
 
         Intent i = new Intent(getBaseContext(), MyService.class);
