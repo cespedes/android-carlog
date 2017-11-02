@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},0);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
 
         Intent i = new Intent(getBaseContext(), MyService.class);
