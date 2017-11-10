@@ -30,9 +30,13 @@ import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 public class MyService extends Service implements LocationListener {
+    public class MyData {
+        boolean logging = false;
+        String email = "unknown";
+        Location loc = new Location("none");
+    }
+    MyData mydata = new MyData();
     public int counter=0;
-    public String email = "unknown";
-    Location myloc = new Location("none");
     LocationManager locationManager;
 
     public MyService() {
@@ -40,7 +44,7 @@ public class MyService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location loc) {
-        myloc = loc;
+        mydata.loc = loc;
         Log.d("Carlog", "MyService:onLocationChanged();");
         Toast.makeText(this,
                 "Location changed: Lat: " + loc.getLatitude() + " Lng: "
@@ -71,7 +75,7 @@ public class MyService extends Service implements LocationListener {
         for (Account account : accounts) {
             Log.d("Carlog", "account=" + account.name);
             if (emailPattern.matcher(account.name).matches()) {
-                email = account.name;
+                mydata.email = account.name;
                 break;
             }
         }
@@ -188,7 +192,7 @@ public class MyService extends Service implements LocationListener {
             @Override
             public void run() {
                 try {
-                    Log.d("Carlog", "MyService:sendData(): email=" + email + " lat=" + myloc.getLatitude() + " lon=" + myloc.getLongitude() + " acc=" + myloc.getAccuracy());
+                    Log.d("Carlog", "MyService:sendData(): email=" + mydata.email + " lat=" + mydata.loc.getLatitude() + " lon=" + mydata.loc.getLongitude() + " acc=" + mydata.loc.getAccuracy());
                     HttpURLConnection client = null;
                     URL url = new URL("https://kermit.cespedes.org/carlog/");
                     client = (HttpURLConnection) url.openConnection();
@@ -199,12 +203,12 @@ public class MyService extends Service implements LocationListener {
                     client.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
                     client.setRequestProperty("charset", "utf-8");
                     StringBuilder postData = new StringBuilder();
-                    postData.append("user=" + email);
-                    postData.append("&lat=" + myloc.getLatitude());
-                    postData.append("&lon=" + myloc.getLongitude());
-                    postData.append("&acc=" + myloc.getAccuracy());
-                    postData.append("&time=" + myloc.getTime());
-                    postData.append("&provider=" + myloc.getProvider());
+                    postData.append("user=" + mydata.email);
+                    postData.append("&lat=" + mydata.loc.getLatitude());
+                    postData.append("&lon=" + mydata.loc.getLongitude());
+                    postData.append("&acc=" + mydata.loc.getAccuracy());
+                    postData.append("&time=" + mydata.loc.getTime());
+                    postData.append("&provider=" + mydata.loc.getProvider());
                     byte[] postDataBytes = postData.toString().getBytes("UTF-8");
                     client.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
                     client.getOutputStream().write(postDataBytes);
