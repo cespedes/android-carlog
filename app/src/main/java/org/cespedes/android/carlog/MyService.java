@@ -49,9 +49,7 @@ public class MyService extends Service implements LocationListener {
         Toast.makeText(this,
                 "Location changed (" + loc.getProvider() + ")",
                 Toast.LENGTH_SHORT).show();
-        if (!mydata.logging) {
-            sendData();
-        }
+        sendData();
     }
 
     @Override
@@ -70,6 +68,7 @@ public class MyService extends Service implements LocationListener {
     }
 
     private void startGPSLocation() {
+        Log.d("Carlog", "startGPSLocation()");
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
@@ -81,6 +80,7 @@ public class MyService extends Service implements LocationListener {
     }
 
     private void startNetworkLocation() {
+        Log.d("Carlog", "startNetworkLocation()");
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
@@ -105,7 +105,7 @@ public class MyService extends Service implements LocationListener {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         startNetworkLocation();
-        startTimer();
+//        startTimer();
         Toast.makeText(this, "Carlog service created", Toast.LENGTH_LONG).show();
     }
 
