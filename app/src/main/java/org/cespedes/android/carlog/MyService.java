@@ -47,9 +47,11 @@ public class MyService extends Service implements LocationListener {
         mydata.loc = loc;
         Log.d("Carlog", "MyService:onLocationChanged();");
         Toast.makeText(this,
-                "Location changed: Lat: " + loc.getLatitude() + " Lng: "
-                        + loc.getLongitude(), Toast.LENGTH_SHORT).show();
-        sendData();
+                "Location changed (" + loc.getProvider() + ")",
+                Toast.LENGTH_SHORT).show();
+        if (!mydata.logging) {
+            sendData();
+        }
     }
 
     @Override
@@ -67,6 +69,27 @@ public class MyService extends Service implements LocationListener {
         Log.d("Carlog", "MyService:onStatusChanged();");
     }
 
+    private void startGPSLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this);
+            locationManager = null;
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(locationManager.GPS_PROVIDER, 0, 0, this);
+        }
+    }
+
+    private void startNetworkLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this);
+            locationManager = null;
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 5 * 60 * 1000, 0, this);
+        }
+    }
+
     @Override
     public void onCreate() {
         Log.d("Carlog", "MyService:onCreate();");
@@ -80,27 +103,24 @@ public class MyService extends Service implements LocationListener {
             }
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(locationManager.NETWORK_PROVIDER, 5*60*1000, 0, this);
-        }
-
-
-
-
-//        startTimer();
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        startNetworkLocation();
+        startTimer();
         Toast.makeText(this, "Carlog service created", Toast.LENGTH_LONG).show();
     }
 
     private void StartLog() {
+        mydata.logging = true;
         addNotification();
         Toast.makeText(this, "Carlog: StartLog", Toast.LENGTH_LONG).show();
+        startGPSLocation();
     }
 
     private void StopLog() {
+        mydata.logging = false;
         delNotification();
         Toast.makeText(this, "Carlog: StopLog", Toast.LENGTH_LONG).show();
+        startNetworkLocation();
     }
 
     @Override
@@ -166,7 +186,7 @@ public class MyService extends Service implements LocationListener {
             Log.d("Carlog", "MyService:startTimer(): starting timer");
             timer = new Timer();
             initializeTimerTask();
-            timer.schedule(timerTask, 1000, 5*60*1000);
+            timer.schedule(timerTask, 1000, 5*1000);
         }
     }
     public void initializeTimerTask() {
@@ -174,7 +194,9 @@ public class MyService extends Service implements LocationListener {
             public void run() {
                 Log.i("Carlog", "MyService:timerTask:run() ++++ " + (counter++));
                 try {
-                    sendData();
+                    if (mydata.logging) {
+                        sendData();
+                    }
                 } catch (Exception e) {
                     Log.i("Carlog", "MyService:sendData(): Exception " + e);
                 }
@@ -204,8 +226,10 @@ public class MyService extends Service implements LocationListener {
                     client.setRequestProperty("charset", "utf-8");
                     StringBuilder postData = new StringBuilder();
                     postData.append("user=" + mydata.email);
+                    postData.append("&logging=" + mydata.logging);
                     postData.append("&lat=" + mydata.loc.getLatitude());
                     postData.append("&lon=" + mydata.loc.getLongitude());
+                    postData.append("&speed=" + mydata.loc.getSpeed());
                     postData.append("&acc=" + mydata.loc.getAccuracy());
                     postData.append("&time=" + mydata.loc.getTime());
                     postData.append("&provider=" + mydata.loc.getProvider());
