@@ -5,8 +5,12 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Service;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -25,6 +29,7 @@ import android.support.v4.app.NotificationCompat;
 import javax.net.ssl.HttpsURLConnection;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
@@ -38,6 +43,8 @@ public class MyService extends Service implements LocationListener {
     MyData mydata = new MyData();
     public int counter=0;
     LocationManager locationManager;
+    private ArrayList<String> mDeviceList = new ArrayList<String>();
+    private BluetoothAdapter mBluetoothAdapter;
 
     public MyService() {
     }
@@ -105,7 +112,7 @@ public class MyService extends Service implements LocationListener {
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         startNetworkLocation();
-//        startTimer();
+        startTimer();
         Toast.makeText(this, "Carlog service created", Toast.LENGTH_LONG).show();
     }
 
@@ -178,6 +185,19 @@ public class MyService extends Service implements LocationListener {
         Toast.makeText(this, "Service Stopped", Toast.LENGTH_LONG).show();
     }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("Carlog", "mReceiver.onReceive()");
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                mDeviceList.add(device.getName() + "\n" + device.getAddress());
+                Log.i("Carlog", "Bluetooth: \"" + device.getName() + "\" [" + device.getAddress() + "]");
+            }
+        }
+    };
+
     private Timer timer = null;
     private TimerTask timerTask;
     long oldTime=0;
@@ -186,13 +206,18 @@ public class MyService extends Service implements LocationListener {
             Log.d("Carlog", "MyService:startTimer(): starting timer");
             timer = new Timer();
             initializeTimerTask();
-            timer.schedule(timerTask, 1000, 5*1000);
+            timer.schedule(timerTask, 1000, 1*60*1000); // discover Bluetooth devices every minute
         }
     }
     public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
                 Log.i("Carlog", "MyService:timerTask:run() ++++ " + (counter++));
+                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                mBluetoothAdapter.startDiscovery();
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                registerReceiver(mReceiver, filter);
+/*
                 try {
                     if (mydata.logging) {
                         sendData();
@@ -200,6 +225,7 @@ public class MyService extends Service implements LocationListener {
                 } catch (Exception e) {
                     Log.i("Carlog", "MyService:sendData(): Exception " + e);
                 }
+*/
             }
         };
     }
@@ -225,14 +251,14 @@ public class MyService extends Service implements LocationListener {
                     client.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
                     client.setRequestProperty("charset", "utf-8");
                     StringBuilder postData = new StringBuilder();
-                    postData.append("user=" + mydata.email);
-                    postData.append("&logging=" + mydata.logging);
-                    postData.append("&lat=" + mydata.loc.getLatitude());
-                    postData.append("&lon=" + mydata.loc.getLongitude());
-                    postData.append("&speed=" + mydata.loc.getSpeed());
-                    postData.append("&acc=" + mydata.loc.getAccuracy());
-                    postData.append("&time=" + mydata.loc.getTime());
-                    postData.append("&provider=" + mydata.loc.getProvider());
+                    postData.append("us=" + mydata.email);
+                    postData.append("&lg" + mydata.logging);
+                    postData.append("&la=" + mydata.loc.getLatitude());
+                    postData.append("&lo=" + mydata.loc.getLongitude());
+                    postData.append("&sp=" + mydata.loc.getSpeed());
+                    postData.append("&ac=" + mydata.loc.getAccuracy());
+                    postData.append("&ti=" + mydata.loc.getTime());
+                    postData.append("&pr=" + mydata.loc.getProvider());
                     byte[] postDataBytes = postData.toString().getBytes("UTF-8");
                     client.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
                     client.getOutputStream().write(postDataBytes);
